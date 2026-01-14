@@ -1,22 +1,30 @@
-# Crypto Portfolio Dashboard
+# FinByt - Crypto Portfolio Dashboard
 
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
-A full-stack investment portfolio dashboard for tracking cryptocurrencies, stocks, and ETFs with real-time price updates via the CoinGecko API. Built with TypeScript on both frontend and backend for complete type safety.
+A full-stack investment portfolio dashboard for tracking cryptocurrencies, stocks, and ETFs with real-time price updates via the CoinGecko API. Features JWT authentication for secure, personalized portfolios.
+
+## Live Demo
+
+**[https://client-eight-ebon-78.vercel.app](https://client-eight-ebon-78.vercel.app)**
+
+Demo credentials:
+- Email: `demo@finbyt.app`
+- Password: `demo123456`
 
 ## Key Features
 
+- **User Authentication** - Secure JWT-based login and registration
+- **Private Portfolios** - Each user has their own protected portfolio
 - **Portfolio Management** - Full CRUD operations for managing investment assets
 - **Live Crypto Prices** - Real-time price updates from CoinGecko API with intelligent caching
 - **Multi-Asset Support** - Track cryptocurrencies, stocks, and ETFs in one place
-- **Interactive Charts** - Visual portfolio allocation and performance analytics
 - **Profit/Loss Tracking** - Real-time P/L calculations with color-coded indicators
 - **Responsive Design** - Dark theme UI optimized for all screen sizes
-- **Type Safety** - Full TypeScript implementation across the stack
 
 ## Tech Stack
 
@@ -24,56 +32,61 @@ A full-stack investment portfolio dashboard for tracking cryptocurrencies, stock
 | Technology | Purpose |
 |------------|---------|
 | React 18 | UI framework |
-| TypeScript | Type safety |
 | Vite | Build tool |
-| Recharts | Data visualization |
-| Axios | API communication |
+| Axios | API communication with JWT interceptor |
+| Context API | Authentication state management |
 
 ### Backend
 | Technology | Purpose |
 |------------|---------|
 | Node.js | Runtime |
 | Express | Web framework |
-| TypeScript + tsx | Type-safe development |
 | SQLite + better-sqlite3 | Data persistence |
+| JWT + bcrypt | Authentication |
 | CoinGecko API | Live crypto prices |
+
+### Deployment
+| Service | Component |
+|---------|-----------|
+| Vercel | Frontend hosting |
+| Railway | Backend API hosting |
 
 ## Project Architecture
 
 ```
-crypto-portfolio-dashboard/
+FinByt/
 ├── client/                    # React frontend
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   │   ├── AssetForm.tsx
-│   │   │   ├── AssetTable.tsx
-│   │   │   ├── DeleteConfirm.tsx
-│   │   │   ├── PortfolioCharts.tsx
-│   │   │   └── PortfolioSummary.tsx
-│   │   ├── services/          # API services
-│   │   │   ├── api.ts
-│   │   │   └── priceService.ts
-│   │   ├── types/             # TypeScript types
-│   │   ├── App.tsx
-│   │   └── main.tsx
+│   │   ├── components/
+│   │   │   ├── AssetForm.jsx
+│   │   │   ├── AssetTable.jsx
+│   │   │   ├── DeleteConfirm.jsx
+│   │   │   ├── Login.jsx
+│   │   │   └── PortfolioSummary.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   └── priceService.js
+│   │   └── App.jsx
 │   └── package.json
 │
 ├── server/                    # Node.js backend
-│   ├── src/
-│   │   ├── controllers/       # Route handlers
-│   │   │   ├── assetController.ts
-│   │   │   └── priceController.ts
-│   │   ├── models/            # Database models
-│   │   │   └── database.ts
-│   │   ├── routes/            # API routes
-│   │   │   ├── assetRoutes.ts
-│   │   │   └── priceRoutes.ts
-│   │   ├── services/          # Business logic
-│   │   │   └── coinGeckoService.ts
-│   │   ├── types/             # TypeScript types
-│   │   ├── server.ts
-│   │   └── seed.ts
-│   └── package.json
+│   ├── controllers/
+│   │   ├── assetController.js
+│   │   ├── authController.js
+│   │   └── priceController.js
+│   ├── middleware/
+│   │   └── auth.js
+│   ├── models/
+│   │   └── database.js
+│   ├── routes/
+│   │   ├── assetRoutes.js
+│   │   ├── authRoutes.js
+│   │   └── priceRoutes.js
+│   ├── services/
+│   │   └── coinGeckoService.js
+│   └── server.js
 │
 └── README.md
 ```
@@ -89,24 +102,31 @@ crypto-portfolio-dashboard/
 
 ```bash
 # Clone the repository
-git clone https://github.com/EduardMilitaruG/crypto-portfolio-dashboard.git
-cd crypto-portfolio-dashboard
+git clone https://github.com/EduardMilitaruG/FinByt.git
+cd FinByt
 
 # Install server dependencies
 cd server && npm install
 
 # Install client dependencies
 cd ../client && npm install
-
-# Configure environment variables
-cp server/.env.example server/.env
-cp client/.env.example client/.env
-
-# Seed the database (optional)
-cd server && npm run seed
 ```
 
-### Running the Application
+### Environment Variables
+
+**Server (.env)**
+```env
+PORT=3001
+JWT_SECRET=your-secret-key
+NODE_ENV=development
+```
+
+**Client (.env)**
+```env
+VITE_API_URL=http://localhost:3001/api
+```
+
+### Running Locally
 
 ```bash
 # Terminal 1: Start backend server
@@ -120,11 +140,19 @@ cd client && npm run dev
 
 ## API Endpoints
 
-### Assets
+### Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/assets` | Get all assets |
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login and get JWT token |
+| GET | `/api/auth/me` | Get current user (protected) |
+
+### Assets (Protected)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/assets` | Get user's assets |
 | GET | `/api/assets/:id` | Get single asset |
 | POST | `/api/assets` | Create new asset |
 | PUT | `/api/assets/:id` | Update asset |
@@ -135,32 +163,22 @@ cd client && npm run dev
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/prices?symbols=btc,eth` | Get prices for symbols |
-| GET | `/api/prices/portfolio` | Get prices for all portfolio crypto |
-| GET | `/api/prices/supported` | List supported crypto symbols |
-| GET | `/api/prices/check/:symbol` | Check if symbol is supported |
-
-## CoinGecko Integration
-
-The application maps common crypto symbols to CoinGecko IDs:
-
-| Symbol | CoinGecko ID |
-|--------|--------------|
-| BTC | bitcoin |
-| ETH | ethereum |
-| SOL | solana |
-| ADA | cardano |
-| ... | (50+ supported) |
-
-**Features:**
-- 5-minute price caching to respect API rate limits
-- Automatic retry with cached data on rate limit
-- Graceful error handling for API failures
+| GET | `/api/prices/portfolio` | Get prices for portfolio |
+| GET | `/api/prices/supported` | List supported symbols |
 
 ## Database Schema
 
 ```sql
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  passwordHash TEXT NOT NULL,
+  createdAt TEXT DEFAULT (datetime('now'))
+);
+
 CREATE TABLE assets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  userId INTEGER NOT NULL,
   assetName TEXT NOT NULL,
   symbol TEXT NOT NULL,
   assetType TEXT CHECK(assetType IN ('crypto', 'stock', 'etf')),
@@ -168,20 +186,21 @@ CREATE TABLE assets (
   buyPrice REAL NOT NULL,
   currentPrice REAL DEFAULT 0,
   notes TEXT,
-  createdAt TEXT DEFAULT (datetime('now'))
+  createdAt TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (userId) REFERENCES users(id)
 );
 ```
 
 ## Skills Demonstrated
 
-- Full-stack TypeScript development
-- RESTful API design and implementation
-- React component architecture with hooks
-- Database design and SQL operations
+- Full-stack JavaScript development
+- JWT authentication implementation
+- RESTful API design with protected routes
+- React Context API for state management
+- Axios interceptors for token handling
+- Database design with foreign key relationships
 - Third-party API integration with caching
-- Error handling and graceful degradation
-- Data visualization with Recharts
-- Modern build tooling (Vite)
+- Cloud deployment (Vercel + Railway)
 
 ## Author
 
@@ -195,4 +214,4 @@ MIT License
 
 ---
 
-*Built as a portfolio project demonstrating full-stack TypeScript development*
+*Built as a portfolio project demonstrating full-stack development with authentication*
