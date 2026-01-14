@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import PortfolioSummary from './components/PortfolioSummary';
 import AssetTable from './components/AssetTable';
 import AssetForm from './components/AssetForm';
 import DeleteConfirm from './components/DeleteConfirm';
+import Login from './components/Login';
 import { assetApi } from './services/api';
 import priceService from './services/priceService';
 import './App.css';
@@ -10,7 +12,9 @@ import './App.css';
 // Price refresh interval (5 minutes)
 const PRICE_REFRESH_INTERVAL = 5 * 60 * 1000;
 
-function App() {
+function Dashboard() {
+  const { user, logout } = useAuth();
+
   // State
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +75,7 @@ function App() {
     if (assets.length > 0 && !loading) {
       refreshPrices();
     }
-  }, [loading]); // Only run once after initial load
+  }, [loading]);
 
   // Set up auto-refresh for prices
   useEffect(() => {
@@ -146,7 +150,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Crypto Portfolio Dashboard</h1>
+        <h1>FinByt Portfolio</h1>
         <div className="header-actions">
           <div className="price-status">
             <span className="status-label">Prices updated:</span>
@@ -161,6 +165,9 @@ function App() {
           </div>
           <button className="btn-primary" onClick={() => setShowForm(true)}>
             + Add Asset
+          </button>
+          <button className="btn-logout" onClick={logout}>
+            Logout ({user?.email})
           </button>
         </div>
       </header>
@@ -213,6 +220,29 @@ function App() {
         <p>Crypto prices powered by CoinGecko API. Prices refresh every 5 minutes.</p>
       </footer>
     </div>
+  );
+}
+
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Dashboard /> : <Login />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

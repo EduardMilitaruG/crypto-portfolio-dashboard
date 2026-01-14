@@ -7,10 +7,14 @@ import {
   deleteAsset,
   updateCryptoPrices
 } from '../controllers/assetController.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/assets - Get all assets
+// All routes require authentication
+router.use(authenticate);
+
+// GET /api/assets - Get all assets for current user
 router.get('/', getAllAssets);
 
 // GET /api/assets/:id - Get single asset

@@ -1,9 +1,11 @@
 import db from '../models/database.js';
 
-// Get all assets
+// Get all assets for current user
 export const getAllAssets = (req, res) => {
   try {
-    const assets = db.prepare('SELECT * FROM assets ORDER BY createdAt DESC').all();
+    const assets = db.prepare(
+      'SELECT * FROM assets WHERE userId = ? ORDER BY createdAt DESC'
+    ).all(req.userId);
     res.json(assets);
   } catch (error) {
     console.error('Error fetching assets:', error);
@@ -11,11 +13,13 @@ export const getAllAssets = (req, res) => {
   }
 };
 
-// Get single asset by ID
+// Get single asset by ID (only if owned by user)
 export const getAssetById = (req, res) => {
   try {
     const { id } = req.params;
-    const asset = db.prepare('SELECT * FROM assets WHERE id = ?').get(id);
+    const asset = db.prepare(
+      'SELECT * FROM assets WHERE id = ? AND userId = ?'
+    ).get(id, req.userId);
 
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
@@ -28,7 +32,7 @@ export const getAssetById = (req, res) => {
   }
 };
 
-// Create new asset
+// Create new asset for current user
 export const createAsset = (req, res) => {
   try {
     const { assetName, symbol, assetType, quantity, buyPrice, currentPrice, notes } = req.body;
@@ -51,17 +55,18 @@ export const createAsset = (req, res) => {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO assets (assetName, symbol, assetType, quantity, buyPrice, currentPrice, notes)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO assets (userId, assetName, symbol, assetType, quantity, buyPrice, currentPrice, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
+      req.userId,
       assetName.trim(),
       symbol.toUpperCase().trim(),
       assetType,
       quantity,
       buyPrice,
-      currentPrice || buyPrice, // Default currentPrice to buyPrice if not provided
+      currentPrice || buyPrice,
       notes?.trim() || null
     );
 
@@ -73,14 +78,17 @@ export const createAsset = (req, res) => {
   }
 };
 
-// Update existing asset
+// Update existing asset (only if owned by user)
 export const updateAsset = (req, res) => {
   try {
     const { id } = req.params;
     const { assetName, symbol, assetType, quantity, buyPrice, currentPrice, notes } = req.body;
 
-    // Check if asset exists
-    const existing = db.prepare('SELECT * FROM assets WHERE id = ?').get(id);
+    // Check if asset exists and belongs to user
+    const existing = db.prepare(
+      'SELECT * FROM assets WHERE id = ? AND userId = ?'
+    ).get(id, req.userId);
+
     if (!existing) {
       return res.status(404).json({ error: 'Asset not found' });
     }
@@ -112,7 +120,7 @@ export const updateAsset = (req, res) => {
     const stmt = db.prepare(`
       UPDATE assets
       SET assetName = ?, symbol = ?, assetType = ?, quantity = ?, buyPrice = ?, currentPrice = ?, notes = ?
-      WHERE id = ?
+      WHERE id = ? AND userId = ?
     `);
 
     stmt.run(
@@ -123,7 +131,8 @@ export const updateAsset = (req, res) => {
       updates.buyPrice,
       updates.currentPrice,
       updates.notes,
-      id
+      id,
+      req.userId
     );
 
     const updatedAsset = db.prepare('SELECT * FROM assets WHERE id = ?').get(id);
@@ -134,17 +143,20 @@ export const updateAsset = (req, res) => {
   }
 };
 
-// Delete asset
+// Delete asset (only if owned by user)
 export const deleteAsset = (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = db.prepare('SELECT * FROM assets WHERE id = ?').get(id);
+    const existing = db.prepare(
+      'SELECT * FROM assets WHERE id = ? AND userId = ?'
+    ).get(id, req.userId);
+
     if (!existing) {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
-    db.prepare('DELETE FROM assets WHERE id = ?').run(id);
+    db.prepare('DELETE FROM assets WHERE id = ? AND userId = ?').run(id, req.userId);
     res.json({ message: 'Asset deleted successfully', id: parseInt(id) });
   } catch (error) {
     console.error('Error deleting asset:', error);
@@ -152,23 +164,24 @@ export const deleteAsset = (req, res) => {
   }
 };
 
-// Batch update prices for crypto assets
+// Batch update prices for crypto assets (for current user)
 export const updateCryptoPrices = (req, res) => {
   try {
-    const { prices } = req.body; // { BTC: 50000, ETH: 3000, ... }
+    const { prices } = req.body;
 
     if (!prices || typeof prices !== 'object') {
       return res.status(400).json({ error: 'prices object is required' });
     }
 
     const updateStmt = db.prepare(`
-      UPDATE assets SET currentPrice = ? WHERE symbol = ? AND assetType = 'crypto'
+      UPDATE assets SET currentPrice = ?
+      WHERE symbol = ? AND assetType = 'crypto' AND userId = ?
     `);
 
     const updateMany = db.transaction((priceMap) => {
       let updated = 0;
       for (const [symbol, price] of Object.entries(priceMap)) {
-        const result = updateStmt.run(price, symbol.toUpperCase());
+        const result = updateStmt.run(price, symbol.toUpperCase(), req.userId);
         updated += result.changes;
       }
       return updated;

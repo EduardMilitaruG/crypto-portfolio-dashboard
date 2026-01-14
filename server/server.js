@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import assetRoutes from './routes/assetRoutes.js';
 import priceRoutes from './routes/priceRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -10,8 +11,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL || '*'
+    : '*',
+  credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Request logging in development
@@ -23,6 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/prices', priceRoutes);
 
